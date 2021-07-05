@@ -1,3 +1,6 @@
-dictionary = {"a": 5, "b": 2, "c": 1}
+x = 0.55
+step = 0.02
 
-print(max(dictionary.items()))
+for i in range(250):
+    print(x)
+    x -= x * 0.01
