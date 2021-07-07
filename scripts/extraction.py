@@ -12,9 +12,10 @@ from collections import defaultdict
 
 
 #CONSTANTS
-API_KEY = "RGAPI-0d153b1c-bb01-45e9-8e88-db47696b69f6"
+API_KEY = "RGAPI-448fb644-b07f-493d-a766-7367bb80b387"
 GRANDMASTER_ENDPOINT = "https://na1.api.riotgames.com/lol/league/v4/grandmasterleagues/by-queue/RANKED_SOLO_5x5"
-CHALLENGER_ENDPPINT = "https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5"
+CHALLENGER_ENDPOINT = "https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5"
+MASTER_ENDPOINT = "https://na1.api.riotgames.com/lol/league/v4/masterleagues/by-queue/RANKED_SOLO_5x5"
 SUMMONERS_ENDPOINT = "https://na1.api.riotgames.com/lol/summoner/v4/summoners"
 PUUID_MATCHES_ENDPOINT = "https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid"
 MATCHID_MATCHES_ENDPOINT = "https://americas.api.riotgames.com/lol/match/v5/matches"
@@ -36,39 +37,62 @@ TIMELINE = "timeline" #appended after the match ID if requested
 #     json.dump(challenger_data, json_file)
 #     print("request ok")
 
+#MASTER REQUEST
+# master = requests.get(url = MASTER_ENDPOINT, params = {"api_key": API_KEY})
+# if master.status_code == 200:
+#     master_data = master.json()
+#     with open("src/json/master.json", 'w') as json_file:
+#         json.dump(master_data, json_file)
+#         print("request ok")
+
+
 
 
 
 #PLAYER PARSING
-# with open('src/json/grandmaster.json', 'r')  as json_file1:
-#     with open('src/json/challenger.json', 'r') as json_file3:
-#         with open('src/json/player.json', 'w') as json_file2:
-#             player_json = {"entries": []}
-#             grandmaster_data = json.load(json_file1)
-#             challenger_data = json.load(json_file3)
-#             for i, entry in enumerate(grandmaster_data["entries"]):
-#                 summoner = requests.get(url = SUMMONERS_ENDPOINT + "/" + entry["summonerId"], params = {'api_key': API_KEY})
-#                 summoner_data = summoner.json()
-#                 print(summoner.status_code,i)
-#                 if summoner.status_code == 200:
-#                     extractedPlayer = {"summonerId": entry["summonerId"], "summonerName": entry["summonerName"], "puuid": summoner_data["puuid"]}
-#                     player_json["entries"].append(extractedPlayer)
-#                     print("successful add")
-#                 else:
-#                     print("unsuccessful appenditure")
-#                 time.sleep(3)
-#             for i, entry in enumerate(challenger_data["entries"]):
-#                 summoner = requests.get(url = SUMMONERS_ENDPOINT + "/" + entry["summonerId"], params = {'api_key': API_KEY})
-#                 summoner_data = summoner.json()
-#                 print(summoner.status_code, i)
-#                 if summoner.status_code == 200:
-#                     extractedPlayer = {"summonerId": entry["summonerId"], "summonerName": entry["summonerName"], "puuid": summoner_data["puuid"]}
-#                     player_json["entries"].append(extractedPlayer)
-#                     print("successful add")
-#                 else:
-#                     print("unsuccessful apprenditure")
-#                 time.sleep(3)
-#             json.dump(player_json, json_file2)
+with open('src/json/grandmaster.json', 'r')  as json_file1:
+    with open('src/json/challenger.json', 'r') as json_file3:
+        with open('src/json/master.json' ,'r') as json_file4:
+            with open('src/json/playerv2.json', 'w') as json_file2:
+                player_json = {"entries": []}
+                for i, entry in enumerate(json.load(json_file4)["entries"]):
+                    if entry["leaguePoints"] < 100:
+                        continue
+                    summoner = requests.get(url= SUMMONERS_ENDPOINT + "/" + entry["summonerId"], params = {"api_key": API_KEY})
+                    summoner_data = summoner.json()
+                    print(summoner.status_code, i)
+                    if summoner.status_code == 200:
+                        extractedPlayer = {"summonerId": entry["summonerId"], "summonerName": entry["summonerName"], "puuid": summoner_data["puuid"]}
+                        player_json["entries"].append(extractedPlayer)
+                        print("successful")
+                    else:
+                        print("unsuccessful")
+                    time.sleep(3)
+                oldVer = json.load(open('src/json/player.json', 'r'))
+                player_json["entries"].extend(oldVer["entries"])
+                json.dump(player_json, json_file2)
+                # for i, entry in enumerate(grandmaster_data["entries"]):
+                #     summoner = requests.get(url = SUMMONERS_ENDPOINT + "/" + entry["summonerId"], params = {'api_key': API_KEY})
+                #     summoner_data = summoner.json()
+                #     print(summoner.status_code,i)
+                #     if summoner.status_code == 200:
+                #         extractedPlayer = {"summonerId": entry["summonerId"], "summonerName": entry["summonerName"], "puuid": summoner_data["puuid"]}
+                #         player_json["entries"].append(extractedPlayer)
+                #         print("successful add")
+                #     else:
+                #         print("unsuccessful appenditure")
+                #     time.sleep(3)
+                # for i, entry in enumerate(challenger_data["entries"]):
+                #     summoner = requests.get(url = SUMMONERS_ENDPOINT + "/" + entry["summonerId"], params = {'api_key': API_KEY})
+                #     summoner_data = summoner.json()
+                #     print(summoner.status_code, i)
+                #     if summoner.status_code == 200:
+                #         extractedPlayer = {"summonerId": entry["summonerId"], "summonerName": entry["summonerName"], "puuid": summoner_data["puuid"]}
+                #         player_json["entries"].append(extractedPlayer)
+                #         print("successful add")
+                #     else:
+                #         print("unsuccessful apprenditure")
+                #     time.sleep(3)
 
 # MATCH RESULTS
 # with open('src/json/player.json', 'r') as json_file:
