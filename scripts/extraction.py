@@ -182,12 +182,11 @@ def schema_updating():
 
 
 #DATA TRANSFER TO CSV FILES
-def csv_translation():
-    with open('src/json/match_schema_challenger.json', 'r') as json_file:
+def match_schema_translation():
+    with open('src/json/match_schema_master.json', 'r') as json_file:
         container_match = defaultdict(list)
         entries_match = json.load(json_file)["entries"]
         game_ids = set()
-        print(len(entries_match))
         breakpoint = 0
         for i, entry in enumerate(entries_match):
             if entry["gameId"] in game_ids:
@@ -199,30 +198,30 @@ def csv_translation():
                     container_match[key].append(value["puuid"])
                 else:
                     container_match[key].append(value)
-            if i % 1000 == 999:
+            if i % 3000 == 2999:
                 df = pandas.DataFrame(data = container_match)
-                df.to_csv('src/csv/match_schema_challenger' + str(breakpoint) + ".csv", index = None)
+                df.to_csv('src/csv/match_schema_master' + str(breakpoint) + ".csv", index = None)
                 breakpoint += 1
                 container_match.clear()
         df = pandas.DataFrame(data = container_match)
-        df.to_csv('src/csv/match_schema_challenger' + str(breakpoint) + ".csv", index = None)
+        df.to_csv('src/csv/match_schema_master' + str(breakpoint) + ".csv", index = None)
 
 
-def player_match_challenger():
-    with open('src/json/player_match_schema_challenger.json', 'r') as json_file:
+def player_match_translation():
+    with open('src/json/player_match_schema_master.json', 'r') as json_file:
         container_player = defaultdict(list)
         entries_match = json.load(json_file)["entries"]
         breakpoint = 0
         for i, entry in enumerate(entries_match):
             for key, value in entry.items():
                 container_player[key].append(value)
-            if i % 2000 == 1999:
+            if i % 3000 == 2999:
                 df = pandas.DataFrame(data = container_player)
-                df.to_csv('src/csv/player_match_challenger/player_match_schema' + str(breakpoint) + '.csv', index = None)
+                df.to_csv('src/csv/player_match_master/player_match_schema_master' + str(breakpoint) + '.csv', index = None)
                 container_player.clear()
                 breakpoint += 1
         df = pandas.DataFrame(data = container_player)
-        df.to_csv('src/csv/player_match_challenger/player_match_schema_challenger' + str(breakpoint) + '.csv', index = None)
+        df.to_csv('src/csv/player_match_master/player_match_schema_master' + str(breakpoint) + '.csv', index = None)
         print("Finished")
 
 
@@ -277,9 +276,9 @@ def ignored_items():
 #CREATE CSV FOR CHAMPION VS CHAMPION WIN RATE
 def champvschamp():
     #Challenger section
-    with open('src/json/player_match_schema_challenger.json') as json_file1:
-        with open('/src/json/match_schema_challenger.json') as json_file2:
-            with open('src/json/champion.json') as json_file3:
+    with open('src/json/player_match_schema_challenger.json', 'r', encoding= "utf-8") as json_file1:
+        with open('src/json/match_schema_challenger.json', 'r', encoding = "utf-8") as json_file2:
+            with open('src/json/champion.json', 'r', encoding = "utf-8") as json_file3:
                 challenger_players = json.load(json_file1)
                 challenger_matches = json.load(json_file2)
                 champions = json.load(json_file3)
@@ -292,8 +291,9 @@ def champvschamp():
                 for champion in champions["data"].keys():
                     for champion2 in champions["data"].keys():
                         if champion != champion2:
-                            champion_data[champion + "|" + champion2] = defaultdict(Bag)
+                            champion_data[champion.lower() + "|" + champion2.lower()] = defaultdict(Bag)
 
+                
 
                 for entry in challenger_players["entries"]:
                     container_total_data[entry["gameId"]][entry["puuid"]] = entry 
@@ -301,21 +301,20 @@ def champvschamp():
                 for match in challenger_matches["entries"]:
                     matchResult = "blue" if match["gameResult"] == 100 else "red"
                     gameId = match["gameId"]
-                    blueChampions = [container_total_data[gameId]["participant" + str(i)]["championName"] for i in range(1,6)]
-                    redChampions = [container_total_data[gameId]["participant" + str(i)]["championName"] for i in range(6, 11)]
+                    puuids = [puuid for puuid in container_total_data[gameId]]
                     #calculations for blue team
-                    for i, blueChampion in enumerate(blueChampions, start = 1):
-                        for redChampion in redChampions:
-                            champion_data[blueChampion + "|" + redChampion]["winRate"].add(1 if matchResult == "blue" else 0)
+                    for i in range(0, 5):
+                        for j in range(5,10):
+                            champion_data[container_total_data[gameId][puuids[i]]["championName"].lower() + "|" + container_total_data[gameId][puuids[j]]["championName"].lower()]["winRate"].add(1 if matchResult == "blue" else 0)
                             for item_num in range(0, 7):
-                                champion_data[blueChampion + "|" + redChampion]["items"].add(container_total_data[gameId]["participant" + str(i)]["item" + str(item_num)])
-                
+                                champion_data[container_total_data[gameId][puuids[i]]["championName"].lower() + "|" + container_total_data[gameId][puuids[j]]["championName"].lower()]["items"].add(container_total_data[gameId][puuids[i]]["item" + str(item_num)])
+
                     #calculations for red team
-                    for i, redChampion in enumerate(redChampions, start = 6):
-                        for blueChampion in blueChampions:
-                            champion_data[redChampion + "|" + blueChampion]["winRate"].add(1 if matchResult == "red" else 0)
+                    for i in range(5, 10):
+                        for j in range(0,5):
+                            champion_data[container_total_data[gameId][puuids[i]]["championName"].lower() + "|" + container_total_data[gameId][puuids[j]]["championName"].lower()]["winRate"].add(1 if matchResult == "red" else 0)
                             for item_num in range(0, 7):
-                                champion_data[redChampion + "|" + blueChampion]["items"].add(container_total_data[gameId]["participant" + str(i)]["item" + str(item_num)])
+                                champion_data[container_total_data[gameId][puuids[i]]["championName"].lower() + "|" + container_total_data[gameId][puuids[j]]["championName"].lower()]["items"].add(container_total_data[gameId][puuids[i]]["item" + str(item_num)])
 
                 #Calculating the rates for each bag
                 for matchup in champion_data.keys():
@@ -324,15 +323,38 @@ def champvschamp():
 
                 #TRANSLATE INTO A DATA STRUCTURE SUITABLE FOR JSON -> CSV
                 translationItems = dict()
+                translationWinRate = defaultdict(list)
 
-                with open('src/json/item.json') as json_file4:
+                #Holds the ordering of the items.
+                itemHashMap = dict()
+
+                with open('src/json/item.json', encoding = "utf-8") as json_file4:
                     items = json.load(json_file4)
                     totalItems = len(items["data"])
+                    
+                    #Sets the hashmap for the items
+                    for i, item in enumerate(items["data"].keys()):
+                        itemHashMap[item] = i
 
-                    for matchup, values in champion_data.items():
+
+
+                    for matchup in champion_data.keys():
+                        #Setups for Items and does Matchup Data at same time
                         translationItems[matchup] = [0 for i in range(totalItems)]
+                        translationWinRate["matchup"].append(matchup)
+                        translationWinRate["winRate"].append(champion_data[matchup]["winRate"])
+
+                        for item, pickRate in champion_data[matchup]["items"].getStats().items():
+                            if str(item) != '0':
+                                translationItems[matchup][itemHashMap[str(item)]] = pickRate
+                    
+                    print(translationWinRate["winRate"][0].getStats())
+                
+
+
+
 
 
             
 if __name__ == "__main__":
-    pass
+    champvschamp()
