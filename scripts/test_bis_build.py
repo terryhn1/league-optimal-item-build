@@ -1,7 +1,6 @@
 import json
 import unittest
 import bis_build
-import time
 
 class TestBISBuildLength(unittest.TestCase):
 
