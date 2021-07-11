@@ -328,33 +328,33 @@ def champvschamp():
                 #Holds the ordering of the items.
                 itemHashMap = dict()
 
-                with open('src/json/item.json', encoding = "utf-8") as json_file4:
+                with open('src/json/item.json','r', encoding = "utf-8") as json_file4:
                     items = json.load(json_file4)
                     totalItems = len(items["data"])
                     
                     #Sets the hashmap for the items
                     for i, item in enumerate(items["data"].keys()):
                         itemHashMap[item] = i
-
-
+                    
 
                     for matchup in champion_data.keys():
                         #Setups for Items and does Matchup Data at same time
                         translationItems[matchup] = [0 for i in range(totalItems)]
                         translationWinRate["matchup"].append(matchup)
-                        translationWinRate["winRate"].append(champion_data[matchup]["winRate"])
+                        translationWinRate["winRate"].append(champion_data[matchup]["winRate"].getStats()[1])
+                        translationWinRate["totalMatches"].append(champion_data[matchup]["winRate"].total)
 
                         for item, pickRate in champion_data[matchup]["items"].getStats().items():
                             if str(item) != '0':
                                 translationItems[matchup][itemHashMap[str(item)]] = pickRate
+
+                    items2D = np.array([itemList for itemList in translationItems.values()])
+
+                    for key,value in itemHashMap.items():
+                        translationWinRate[items["data"][key]["name"]] = items2D[:,value]
                     
-                    print(translationWinRate["winRate"][0].getStats())
-                
-
-
-
-
-
+                    df = pandas.DataFrame(data = translationWinRate)
+                    df.to_csv('src/csv/itemMatchup.csv', index = None)
             
 if __name__ == "__main__":
     champvschamp()
