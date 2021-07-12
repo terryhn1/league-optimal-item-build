@@ -52,7 +52,7 @@ def roleTranslatioGeneralizer():
 
 
 if __name__ == "__main__":
-    # translateCSV("src/queries/itemWInUsage.csv","src/json/itemWinUsage.json", 0, 1, ["itemName", "winCount", "totalCount", "winRatio"])
+    #translateCSV("src/queries/itemWInUsage.csv","src/json/itemWinUsage.json", 0, 1, ["itemName", "winCount", "totalCount", "winRatio"])
     csvItemMatchup()
 
 

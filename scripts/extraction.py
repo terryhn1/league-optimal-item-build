@@ -12,7 +12,6 @@ from bag import Bag
 
 
 #CONSTANTS
-API_KEY = "RGAPI-0e1b4d2b-1202-49e1-add1-d808c9d746b9"
 GRANDMASTER_ENDPOINT = "https://na1.api.riotgames.com/lol/league/v4/grandmasterleagues/by-queue/RANKED_SOLO_5x5"
 CHALLENGER_ENDPOINT = "https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5"
 MASTER_ENDPOINT = "https://na1.api.riotgames.com/lol/league/v4/masterleagues/by-queue/RANKED_SOLO_5x5"

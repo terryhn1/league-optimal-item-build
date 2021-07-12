@@ -1,5 +1,7 @@
 import json
 import time
+from collections import defaultdict
+import pandas
 from numpy.lib.arraysetops import unique
 
 from numpy.lib.shape_base import take_along_axis
@@ -130,17 +132,23 @@ def generate_build(item_dict: dict, itemUsageDict: dict, championName: str, curr
             if all(check): currentBuild.add(item_dict[best_candidate]["name"])
     return currentBuild
 
-if __name__ == "__main__":
-    with open("src/json/item.json") as items:
-        with open("src/json/itemWinUsage.json") as itemUsageDict:
-            items = json.load(items); itemUsageDict = json.load(itemUsageDict)
-            notFull = set()
-            for key in itemUsageDict.keys():
-                print(key)
-                currentBuild = generate_build(items["data"], itemUsageDict, key, set())
-                print(currentBuild)
+def csvBuild(item_file, itemWin_file):
+    with open(item_file) as items:
+        with open(itemWin_file) as itemUsageDict:
+            totalItems = json.load(items); itemUsage = json.load(itemUsageDict)
+            container = defaultdict(list)
+            for key in itemUsage.keys():
+                currentBuild = list(generate_build(totalItems["data"], itemUsage, key, set()))
+                while len(currentBuild) != 6:
+                    currentBuild.append('N/A')
+                container["championName"].append(key)
+                for i, item in enumerate(currentBuild, start = 1):
+                    container["item" + str(i)].append(item)
 
-                if len(currentBuild) != 6:
-                    notFull.add(key)
-            
-            print(notFull)
+            df = pandas.DataFrame(data = container)
+            df.to_csv('src/csv/itemBIS.csv', index = None)
+    
+
+
+if __name__ == "__main__":
+    csvBuild('src/json/item.json', 'src/json/itemWinUsage.json')
